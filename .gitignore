@@ -14,7 +14,7 @@ solution
 temp
 *.sppkg
 .heft
-.env
+config.env
 
 # Coverage directory used by tools like istanbul
 coverage
