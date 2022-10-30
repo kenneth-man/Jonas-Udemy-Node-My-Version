@@ -12,7 +12,7 @@ const {
 
 const router = express.Router();
 
-// appling middleware 'aliasTopTours' before 'getAllTours'
+// applying middleware 'aliasTopTours' before 'getAllTours'
 router
 	.route('/top-5-cheap')
 	.get(aliasTopTours, getAllTours);

@@ -1,9 +1,10 @@
 const Tour = require('../models/tourModel');
 const APIFeatures = require('../utils/apiFeatures');
 
-// 3rd param 'next' calls next middlware in middleware stack
+// 3rd param 'next' calls next middleware in middleware stack
 exports.aliasTopTours = (req, res, next) => {
-	// prefilling the query string for the user
+	// default query parameters;
+	// prefilling the query string for the user if they didn't specify any parameters
 	req.query.limit = '5';
 	req.query.sort = '-ratingsAverage,price';
 	req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
@@ -14,8 +15,8 @@ exports.createTour = async (req, res) => {
 	try {
 		const newTour = await Tour.create(req.body);
 
-		// 'status()' sends a code with the res
-		// '.json()' ends the 'req res cycle', sending back json in the res
+		// sending back json in the res; 'status()' sends a code with the res
+		// '.json()' ends the 'req res cycle'
 		res
 			.status(201)
 			.json({
