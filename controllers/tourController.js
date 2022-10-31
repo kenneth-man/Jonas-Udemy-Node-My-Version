@@ -135,7 +135,9 @@ exports.deleteTour = async (req, res) => {
 	}
 };
 
-// using mongodb aggregation pipeline; keys/properties with leading '$' are mongodb operators
+// using mongodb aggregation pipeline; aggregation pipelines are similar to queries but
+// consists of one or more 'stages' that processes and manipulates data
+// keys/properties with leading '$' are mongodb operators
 exports.getTourStats = async (req, res) => {
 	try {
 		const stats = await Tour.aggregate([
@@ -148,7 +150,6 @@ exports.getTourStats = async (req, res) => {
 			},
 			{
 				$group: {
-					// _id: null,
 					_id: '$difficulty',
 					numTours: {
 						$sum: 1
@@ -175,13 +176,6 @@ exports.getTourStats = async (req, res) => {
 					avgPrice: 1
 				}
 			}
-			// {
-			// 	$match: {
-			// 		_id: {
-			// 			$ne: 'easy'
-			// 		}
-			// 	}
-			// }
 		]);
 
 		res
@@ -223,7 +217,7 @@ exports.getMonthlyPlan = async (req, res) => {
 						$month: '$startDates'
 					},
 					numTourStarts: {
-						$add: 1
+						$sum: 1
 					},
 					tours: {
 						$push: '$name'
@@ -244,6 +238,9 @@ exports.getMonthlyPlan = async (req, res) => {
 				$sort: {
 					numTourStarts: -1
 				}
+			},
+			{
+				$limit: 12
 			}
 		]);
 
