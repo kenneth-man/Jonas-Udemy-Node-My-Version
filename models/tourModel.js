@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
 	// schema definitons
@@ -8,7 +9,11 @@ const tourSchema = new mongoose.Schema(
 			type: String,
 			required: [true, 'A tour must have a name'],
 			unique: true,
-			trim: true
+			trim: true,
+			maxLength: [40, 'A tour name must be equal to or less than 40 characters'],
+			minLength: [10, 'A tour name must be equal to or greater than 10 characters'],
+			// custom validator
+			validate: [validator.isAlpha, 'Name must consist of only letters']
 		},
 		slug: String,
 		duration: {
@@ -21,11 +26,17 @@ const tourSchema = new mongoose.Schema(
 		},
 		difficulty: {
 			type: String,
-			required: [true, 'A tour must have a difficulty']
+			required: [true, 'A tour must have a difficulty'],
+			enum: {
+				values: ['easy', 'medium', 'difficult'],
+				message: 'Difficulty can only be of type "easy", "medium", or "difficult"'
+			}
 		},
 		ratingsAverage: {
 			type: Number,
-			default: 4.5
+			default: 4.5,
+			min: [1, 'Rating must be above 1'],
+			max: [5, 'Rating must be below 5']
 		},
 		ratingsQuantity: {
 			type: Number,
@@ -35,7 +46,18 @@ const tourSchema = new mongoose.Schema(
 			type: Number,
 			required: [true, 'A tour must have a price']
 		},
-		priceDiscount: Number,
+		priceDiscount: {
+			type: Number,
+			// could aslo format in array as shown in the above custom validator
+			validate: {
+				validator: function(value) {
+					// 'value' is the priceDiscount value; 
+					// 'this' refers to current document (only on document creation, not when updating)
+					return value < this.price
+				},
+				message: 'Price discount ({VALUE}) should be less than the regular price'
+			}
+		},
 		summary: {
 			type: String,
 			trim: true,

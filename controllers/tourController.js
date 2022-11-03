@@ -94,6 +94,7 @@ exports.updateTour = async (req, res) => {
 	try {
 		const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
 			new: true,
+			// enable built in mongoose validators in tourModel.js
 			runValidators: true
 		});
 		
