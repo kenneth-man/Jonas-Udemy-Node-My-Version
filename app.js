@@ -2,6 +2,8 @@ const express = require('express');
 const morgan = require('morgan');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
@@ -28,5 +30,19 @@ app.use((req, res, next) => {
 // applying middleware to only specific routes; mounting routers
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+// handling all unknown routes
+app.all('*', (req, res, next) => {
+	// passing arg into 'next' skips all subsequent middleware and goes to the error middleware
+	next(
+		new AppError(
+			`Can't find ${req.originalUrl} on this server`,
+			404
+		)
+	);
+});
+
+// error handling middleware
+app.use(globalErrorHandler);
 
 module.exports = app;
