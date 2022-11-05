@@ -1,14 +1,41 @@
+const AppError = require('../utils/appError');
+
+// handling invalid database IDs
+const handleCastErrorDB = (err) => {
+	const message = `Invalid ${err.path}: ${err.value}`;
+
+	return new AppError(message, 400);
+};
+
+// handling duplicate database fields
+const handleDuplicateFieldsDB = (err) => {
+	// RegEx: Grabbing values between quotation marks
+	const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+	const message = `Duplicate field value: ${value}. Please use another value`
+
+	return new AppError(message, 400);
+};
+
+// handling mongoose validation errors in schema
+const handleValidationErrorDB = (err) => {
+	const errors = Object.values(err.errors).map(curr => curr.message);
+	const message = `Invalid input data: ${errors.join('. ')}`;
+
+	return new AppError(message, 400);
+};
+
 const setErrorObject = (error, res) => {
 	// Operational, trusted error: send message to client
 	if (error.isOperational) {
 		let conditionalErrorObject;
-		const { status, statusCode } = error;
+		const { statusCode } = error;
 
-		status = status || 'error';
 		statusCode = statusCode || 500;
 
 		if (process.env.NODE_ENV === 'development') {
-			const { message, stack } = error;
+			const { status, message, stack } = error;
+
+			status = status || 'error';
 			
 			conditionalErrorObject = {
 				status,
@@ -19,11 +46,25 @@ const setErrorObject = (error, res) => {
 		}
 
 		if (process.env.NODE_ENV === 'production') {
-			conditionalErrorObject = {
-				status,
-				message
+			// not good practice to mutate argument values
+			let errorCopy = { ...error };
+
+			if (errorCopy.name === 'CastError') {
+				errorCopy = handleCastErrorDB(errorCopy);
 			}
-				
+
+			if (errorCopy.code === 11000) {
+				errorCopy = handleDuplicateFieldsDB(errorCopy);
+			}
+
+			if (errorCopy.name === 'ValidationError') {
+				errorCopy = handleValidationErrorDB(errorCopy);
+			}
+
+			conditionalErrorObject = {
+				status: errorCopy.status,
+				message: errorCopy.message
+			}	
 		}
 
 		res.status(statusCode).json(conditionalErrorObject);
