@@ -33,7 +33,7 @@ app.use('/api/v1/users', userRouter);
 
 // handling all unknown routes
 app.all('*', (req, res, next) => {
-	// passing arg into 'next' skips all subsequent middleware and goes to the error middleware
+	// passing an argument into 'next()' skips all subsequent middleware and goes to the error middleware
 	next(
 		new AppError(
 			`Can't find ${req.originalUrl} on this server`,

@@ -1,6 +1,7 @@
 const Tour = require('../models/tourModel');
 const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
 // 3rd param 'next' calls next middleware in middleware stack
 exports.aliasTopTours = (req, res, next) => {
@@ -54,6 +55,10 @@ exports.getTour = catchAsync(async (req, res, next) => {
 	// in tourRoutes.js, an 'id' dynamic parameter is defined in '.route('/:id')'
 	const tour = await Tour.findById(req.params.id);
 
+	if (!tour) {
+		return next(new AppError('No Tour found with a matching ID', 404));
+	}
+
 	res
 		.status(200)
 		.json({
@@ -70,6 +75,10 @@ exports.updateTour = catchAsync(async (req, res, next) => {
 		// enable built in mongoose validators in tourModel.js
 		runValidators: true
 	});
+
+	if (!tour) {
+		return next(new AppError('No Tour found with a matching ID', 404));
+	}
 	
 	res
 		.status(200)
@@ -82,7 +91,11 @@ exports.updateTour = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteTour = catchAsync(async (req, res, next) => {
-	await Tour.findByIdAndDelete(req.params.id);
+	const tour = await Tour.findByIdAndDelete(req.params.id);
+
+	if (!tour) {
+		return next(new AppError('No Tour found with a matching ID', 404));
+	}
 		
 	res
 		.status(204)
