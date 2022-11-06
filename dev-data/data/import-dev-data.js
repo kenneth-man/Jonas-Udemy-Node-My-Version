@@ -6,14 +6,15 @@ const Tour = require('./../../models/tourModel');
 dotenv.config({ path: './config.env' });
 
 // Connect database with our express app via mongoose
-const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
-
 mongoose
-	.connect(DB, {
-		useNewUrlParser: true,
-		useCreateIndex: true,
-		useFindAndModify: false
-	})
+	.connect(
+		process.env.DATABASE_PASSWORD,
+		{
+			useNewUrlParser: true,
+			useCreateIndex: true,
+			useFindAndModify: false
+		}
+	)
 	.then(connection => {
 		// console.log(connection.connections);
 	});
