@@ -15,7 +15,9 @@ const tourSchema = new mongoose.Schema(
 			// custom validator
 			validate: [validator.isAlpha, 'Name must consist of only letters']
 		},
-		slug: String,
+		slug: {
+			type: String
+		},
 		duration: {
 			type: Number,
 			required: [true, 'A tour must have a duration']
@@ -71,14 +73,18 @@ const tourSchema = new mongoose.Schema(
 			type: String,
 			required: [true, 'A tour must have a cover image']
 		},
-		// of type 'string[]'
-		images: [String],
+		images: {
+			// of type 'string[]'
+			type: [String]
+		},
 		createdAt: {
 			type: Date,
 			default: Date.now(),
 			select: false
 		},
-		startDates: [Date],
+		startDates: {
+			type: [Date]
+		},
 		secretTour: {
 			type: Boolean,
 			default: false
