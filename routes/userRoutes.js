@@ -13,6 +13,8 @@ const router = express.Router();
 // specific route that only has one http method (post for signing up a user)
 router.post('/signup', signup);
 
+router.post('/login', login);
+
 router
 	.route('/')
 	.get(getAllUsers)
