@@ -69,3 +69,32 @@ exports.login = catchAsync(async (req, res, next) => {
 		token
 	})
 });
+
+exports.protect = catchAsync(async (req, res, next) => {
+	let token;
+	const requestHeader = req.headers;
+
+	// 1) Getting token and checking if it exists;
+	// code convention to create a header in request called 'authorization'
+	// and the value being a string 'Bearer [...token goes here...]'
+	if (requestHeader.authorization && requestHeader.authorization.startsWith('Bearer')) {
+		token = requestHeader.authorization.split(' ')[1];
+	}
+
+	if (!token) {
+		return next(
+			new AppError(
+				'You are not logged in, Please log in to gain access',
+				401
+			)
+		);
+	}
+
+	// 2) checking if token is valid
+
+	// 3) Check if user exists
+
+	// 4) Check if user changed password after the token was issued
+
+	next();
+});
