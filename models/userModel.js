@@ -35,6 +35,9 @@ const userSchema = new mongoose.Schema(
 				},
 				'Passwords must match'
 			]
+		},
+		passwordChangedAt: {
+			type: Date
 		}
 	}
 );
@@ -46,16 +49,31 @@ userSchema.pre('save', async function(next) {
 
 	this.password = await bcrypt.hash(this.password, 12);
 
-	// remove this property; not included in the new document
+	// remove the 'passwordConfirm' property; not included in the new document
 	this.passwordConfirm = undefined;
 
 	next();
 });
 
-// instance method; available on all documents of a certain collection
+// instance method; available on all 'User' documents
 userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
 	return await bcrypt.compare(candidatePassword, userPassword);
 };
+
+userSchema.methods.changedPassword = async function(JWTTimestamp) {
+	if (this.passwordChangedAt) {
+		// converted 'passwordChangedAt' to timestamp format for comparison with 'JWTTimestamp'
+		const passwordChangedAtTimestamp = parseInt(
+			this.passwordChangedAt.getTime() / 1000,
+			10
+		);
+
+		return JWTTimestamp < passwordChangedAtTimestamp;
+	}
+
+	// password was not changed
+	return false;
+}
 
 const User = mongoose.model('User', userSchema);
 

@@ -24,6 +24,22 @@ const handleValidationErrorDB = (err) => {
 	return new AppError(message, 400);
 };
 
+// JWT token verification error from 'jwt.verify()' in 'authController'
+const handleJWTError = (err) => {
+	return new AppError(
+		`Invalid token: ${err}. Please try logging in again`,
+		401
+	)
+}
+
+// JWT token has expired; duration set in .env as 'JWT_EXPIRES_IN'
+const handleJWTExpiredError = (err) => {
+	return new AppError(
+		`Expired token: ${err}. Please log in again to generate new token`,
+		401
+	)
+}
+
 const setErrorObject = (error, res) => {
 	// Operational, trusted error: send message to client
 	if (error.isOperational) {
@@ -61,6 +77,14 @@ const setErrorObject = (error, res) => {
 				errorCopy = handleValidationErrorDB(errorCopy);
 			}
 
+			if (errorCopy.name === 'JsonWebTokenError') {
+				errorCopy = handleJWTError(errorCopy);
+			}
+
+			if (errorCopy.name === 'TokenExpiredError') {
+				errorCopy = handleJWTExpiredError(errorCopy);
+			}
+
 			conditionalErrorObject = {
 				status: errorCopy.status,
 				message: errorCopy.message
@@ -74,8 +98,8 @@ const setErrorObject = (error, res) => {
 
 	console.error('Error: ', error);
 
-	// Programming or unknown error: don't leak error details or vulnerabilities
-	// send generic error message to client
+	// unknown error: send generic error message to client
+	// don't leak error details or vulnerabilities
 	res.status(500).json({
 		status: 'Error',
 		message: 'Something went very wrong'

@@ -113,6 +113,7 @@ tourSchema.virtual('durationWeeks').get(function() {
 // 'save' hook only runs for the '.save()' or '.create()' mongoose methods
 // every middleware function has access to 'next'
 tourSchema.pre('save', function(next) {
+	// 'this' refers to the current document
 	this.slug = slugify(this.name, { lower: true });
 	next();
 });

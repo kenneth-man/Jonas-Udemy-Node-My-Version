@@ -1,3 +1,4 @@
+const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
@@ -84,17 +85,42 @@ exports.protect = catchAsync(async (req, res, next) => {
 	if (!token) {
 		return next(
 			new AppError(
-				'You are not logged in, Please log in to gain access',
+				'You are not logged in. Please log in to gain access',
 				401
 			)
 		);
 	}
 
-	// 2) checking if token is valid
+	// 2) checking if token is valid and if payload/token has not been altered
+	// if payload has been altered, token would be altered, failing verify
+	const decodedToken = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-	// 3) Check if user exists
+	// 3) Check if user still exists
+	const user = await User.findById(decodedToken.id);
+
+	if (!user) {
+		return next(
+			new AppError(
+				'The user belonging to this token no longer exists',
+				401
+			)
+		);
+	}
 
 	// 4) Check if user changed password after the token was issued
+	// 'iat' means 'issued at token'
+	if (user.changedPassword(decodedToken.iat)) {
+		return next(
+			new AppError(
+				'This user recently changed their password. Please log in again',
+				401
+			)
+		);
+	}
+
+	// put entire user data into request object ni 'user' prop (express)
+	// if we want to pass data from middleware to middleware, add props to the 'req' object
+	req.user = user;
 
 	next();
 });
