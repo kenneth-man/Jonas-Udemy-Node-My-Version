@@ -14,16 +14,17 @@ dotenv.config({ path: './config.env' });
 // Connect mongoDB database with our express app via mongoose
 mongoose
 	.connect(
-		process.env.DATABASE_PASSWORD,
+		process.env.DATABASE,
 		{
 			useNewUrlParser: true,
 			useCreateIndex: true,
-			useFindAndModify: false
+			useFindAndModify: false,
+			useUnifiedTopology: true
 		}
 	)
-	.then(connection => {
-		console.log(connection);
-	});
+	// .then(connection => {
+	// 	console.log(connection);
+	// });
 
 const app = require('./app');
 const port = process.env.PORT || 3000;

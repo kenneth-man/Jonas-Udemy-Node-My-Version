@@ -44,12 +44,12 @@ const setErrorObject = (error, res) => {
 	// Operational, trusted error: send message to client
 	if (error.isOperational) {
 		let conditionalErrorObject;
-		const { statusCode } = error;
+		let { statusCode } = error;
 
 		statusCode = statusCode || 500;
 
 		if (process.env.NODE_ENV === 'development') {
-			const { status, message, stack } = error;
+			let { status, message, stack } = error;
 
 			status = status || 'error';
 			
