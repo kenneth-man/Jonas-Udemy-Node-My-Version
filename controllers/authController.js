@@ -71,6 +71,7 @@ exports.login = catchAsync(async (req, res, next) => {
 	})
 });
 
+// protected route (if current user is logged in)
 exports.protect = catchAsync(async (req, res, next) => {
 	let token;
 	const requestHeader = req.headers;
@@ -118,7 +119,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 		);
 	}
 
-	// put entire user data into request object ni 'user' prop (express)
+	// put entire user data into request object in 'user' prop (express)
 	// if we want to pass data from middleware to middleware, add props to the 'req' object
 	req.user = user;
 

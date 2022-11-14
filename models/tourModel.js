@@ -118,15 +118,9 @@ tourSchema.pre('save', function(next) {
 	next();
 });
 
-tourSchema.pre('save', function(next) {
-	console.log('pre save hook to do something');
-	next();
-});
-
 // executed once all pre() middleware functions have completed
 // acts on the saved document
 tourSchema.post('save', function(document, next) {
-	console.log(document);
 	next();
 });
 
@@ -142,7 +136,6 @@ tourSchema.pre(/^find/, function(next) {
 
 tourSchema.post(/^find/, function(documents, next) {
 	console.log(`Query took ${Date.now() - this.start}ms`);
-	console.log(documents)
 	next();
 });
 
