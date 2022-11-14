@@ -124,3 +124,20 @@ exports.protect = catchAsync(async (req, res, next) => {
 
 	next();
 });
+
+// if the user's 'role' is not included in the arguments, they don't have access (throw error)
+// Express automatically passes the 3 arguments req, res, next for middleware functions
+exports.restrictTo = (...roles) => {
+	return (req, res, next) => {
+		if (!roles.includes(req.user.role)) {
+			return next(
+				new AppError(
+					'You do not have permission to perform this action',
+					403
+				)
+			);
+		}
+
+		next();
+	}
+};
