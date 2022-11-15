@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema(
 	{
@@ -43,6 +44,12 @@ const userSchema = new mongoose.Schema(
 		},
 		passwordChangedAt: {
 			type: Date
+		},
+		passwordResetToken: {
+			type: String
+		},
+		passwordResetExpires: {
+			type: Date
 		}
 	}
 );
@@ -78,7 +85,25 @@ userSchema.methods.changedPassword = function(JWTTimestamp) {
 
 	// password was not changed
 	return false;
-}
+};
+
+userSchema.methods.createPasswordResetToken = function() {
+	const resetToken = crypto.randomBytes(32).toString('hex');
+
+	// assigning encrypted reset token to user document
+	// using 'crypto' module as it's faster than bcrypt and don't require a optimally secure token (as it's only valid for a short amount of time 10 mins)
+	// modified user document (same for the below) but not updated in database, so need to '.save()' (in authController)
+	this.passwordResetToken = crypto
+		.createHash('sha256')
+		.update(resetToken)
+		.digest('hex');
+
+	// password expires in 10 minutes
+	this.passwordResetExpires = Date.now() + (10 * 60 * 1000);
+
+	// send token to user
+	return resetToken;
+};
 
 const User = mongoose.model('User', userSchema);
 
