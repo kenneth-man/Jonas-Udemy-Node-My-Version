@@ -4,6 +4,7 @@ const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const sendEmail = require('../utils/email');
+const crypto = require('crypto');
 
 const signToken = (id) => {
 	return jwt.sign(
@@ -66,6 +67,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
 	// 3) Send token to client
 	const token = signToken(user._id);
+
 	res.status(200).json({
 		status: 'success',
 		token
@@ -200,10 +202,50 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 				'There was an error sending the email. Try again later',
 				500
 			)
-		)
+		);
 	}
 });
 
-exports.resetPassword = (req, res, next) => {
+exports.resetPassword = catchAsync(async (req, res, next) => {
+	// 1) Encrypt the token passed in to compare with the encrypted 'passwordResetToken' assigned to the user in db
+	//	'req.params' because ':token' is a dynamic path in the '/resetPassword/:token' route
+	const hashedToken = crypto
+		.createHash('sha256')
+		.update(req.params.token)
+		.digest('hex');
 
-}
+	const user = await User.findOne({
+		passwordResetToken: hashedToken,
+		passwordResetExpires: {
+			// check if the token hasn't expired
+			$gt: Date.now()
+		}
+	});
+
+	if (!user) {
+		return next(
+			new AppError(
+				'Token is invalid or has expired',
+				400
+			)
+		);
+	}
+
+	// 2) modify document to the new password and other props then save
+	user.password = req.body.password;
+	user.passwordConfirm = req.body.passwordConfirm;
+	user.passwordResetToken = undefined;
+	user.passwordResetExpires = undefined;
+	await user.save();
+
+	// 3) Update the 'changedPasswordAt' property for the user
+	// ...ran in userModel middlware pre save hook due to '.save()' above
+
+	// 4) Log the user in
+	const token = signToken(user._id);
+	
+	res.status(200).json({
+		status: 'success',
+		token
+	})
+});

@@ -67,6 +67,14 @@ userSchema.pre('save', async function(next) {
 	next();
 });
 
+userSchema.pre('save', function(next) {
+	if (!this.isModified('password') || this.isNew) return next();
+
+	// - 1 second to make sure this prop is less than the token created (created after passworChangedAt)
+	this.passwordChangedAt = Date.now() - 1000;
+	next();
+});
+
 // instance method; available on all 'User' documents
 userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
 	return await bcrypt.compare(candidatePassword, userPassword);
