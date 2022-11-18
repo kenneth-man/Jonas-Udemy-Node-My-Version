@@ -14,6 +14,23 @@ const signToken = (id) => {
 	);
 };
 
+// creating a json web token and send to user
+const createAndSendToken = (user, statusCode, res) => {
+	const token = signToken(user._id);
+
+	// login a new user by sending jwt token 
+	res
+		.status(statusCode)
+		.json({
+			status: 'Success',
+			token,
+			data: {
+				user
+			}
+		}
+	);
+}
+
 exports.signup = catchAsync(async (req, res, next) => {
 	const { name, email, password, passwordConfirm } = req.body;
 
@@ -24,18 +41,8 @@ exports.signup = catchAsync(async (req, res, next) => {
 		passwordConfirm
 	});
 
-	// creating a json web token;
-	// payload, jwt secret and options
-	const token = signToken(newUser._id);
-
-	// login a new user by sending jwt token 
-	res.status(201).json({
-		status: 'Success',
-		token,
-		data: {
-			user: newUser
-		}
-	});
+	// Login and send JWT to client
+	createAndSendToken(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -65,13 +72,7 @@ exports.login = catchAsync(async (req, res, next) => {
 		);
 	}
 
-	// 3) Send token to client
-	const token = signToken(user._id);
-
-	res.status(200).json({
-		status: 'success',
-		token
-	})
+	createAndSendToken(user, 200, res);
 });
 
 // protected route (if current user is logged in)
@@ -241,11 +242,30 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 	// 3) Update the 'changedPasswordAt' property for the user
 	// ...ran in userModel middlware pre save hook due to '.save()' above
 
-	// 4) Log the user in
-	const token = signToken(user._id);
-	
-	res.status(200).json({
-		status: 'success',
-		token
-	})
+	createAndSendToken(user, 200, res);
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+	// 1) Get user from the collection
+	// this function is only for logged-in users, so we will have the user on the req object
+	// 'password' has 'select: false' prop, so is not returned in queries by default; '+password' required if needed to select
+	const user = await User
+		.findById(req.user.id)
+		.select('+password');
+
+	// 2) Check if the POSTed password is correct
+	if ( !(await user.correctPassword(req.body.passwordCurrent, user.password)) ) {
+		return next(
+			new AppError(
+				'Your current password is wrong',
+				401
+			)
+		);
+	}
+
+	user.password = req.body.password;
+	user.passwordConfirm = req.body.passwordConfirm;
+	await user.save();
+
+	createAndSendToken(user, 200, res);
 });
