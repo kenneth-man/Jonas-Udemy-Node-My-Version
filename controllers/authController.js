@@ -148,7 +148,7 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
-	// 1) get user based by email
+	// 1) get user based on POSTed email that they provided
 	const user = await User.findOne({
 		email: req.body.email
 	});
@@ -162,7 +162,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 		);
 	}
 
-	// 2) generate the random reset token
+	// 2) generate a random reset token
 	const resetToken = user.createPasswordResetToken();
 
 	// modified properties on document are not saved unless explicitly call '.save()' method
@@ -208,7 +208,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
-	// 1) Encrypt the token passed in to compare with the encrypted 'passwordResetToken' assigned to the user in db
+	// 1) Encrypt the token passed in params to compare with the encrypted 'passwordResetToken' assigned to the user in db
 	//	'req.params' because ':token' is a dynamic path in the '/resetPassword/:token' route
 	const hashedToken = crypto
 		.createHash('sha256')
@@ -233,6 +233,8 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 	}
 
 	// 2) modify document to the new password and other props then save
+	// User model validates on '.save()' and '.create()' so will compare if 'password' === 'passwordConfirm'
+	// if not matching error is thrown and caught in 'catchAsync()'
 	user.password = req.body.password;
 	user.passwordConfirm = req.body.passwordConfirm;
 	user.passwordResetToken = undefined;
@@ -246,9 +248,8 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
-	// 1) Get user from the collection
-	// this function is only for logged-in users, so we will have the user on the req object
-	// 'password' has 'select: false' prop, so is not returned in queries by default; '+password' required if needed to select
+	// 1) Get user by id; 'req.user' is assigned in 'protect' function middleware ran before this middleware in '/updateMyPassword' route
+	// 'password' has 'select: false' property, so isn't returned in queries by default; '+password' is required if needed to select
 	const user = await User
 		.findById(req.user.id)
 		.select('+password');
@@ -263,7 +264,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 		);
 	}
 
-	user.password = req.body.password;
+	user.password = req.body.passwordNew;
 	user.passwordConfirm = req.body.passwordConfirm;
 	await user.save();
 

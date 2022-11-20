@@ -34,7 +34,8 @@ const userSchema = new mongoose.Schema(
 		passwordConfirm: {
 			type: String,
 			required: [true, 'Please confirm your password'],
-			// this only works when creating or saving a document (.create() or .save())
+			// validation only runs when creating '.create()' or saving '.save()' a document
+			// doesn't run when 'updating' e.g. findByIdAndUpdate()
 			validate: [
 				function(value) {
 					return value === this.password;
@@ -96,11 +97,12 @@ userSchema.methods.changedPassword = function(JWTTimestamp) {
 };
 
 userSchema.methods.createPasswordResetToken = function() {
+	// random string of 32 characters
 	const resetToken = crypto.randomBytes(32).toString('hex');
 
-	// assigning encrypted reset token to user document
-	// using 'crypto' module as it's faster than bcrypt and don't require a optimally secure token (as it's only valid for a short amount of time 10 mins)
-	// modified user document (same for the below) but not updated in database, so need to '.save()' (in authController)
+	// encrypt the reset token and assign to the current user document
+	// using 'crypto' module to generate jwt as it's faster than bcrypt; also we don't require an optimally secure token (as it's only valid for a short amount of time 10 mins)
+	// modified user document properties (same for the below) but not updated in database, so need to '.save()' the document (in authController)
 	this.passwordResetToken = crypto
 		.createHash('sha256')
 		.update(resetToken)
@@ -109,7 +111,8 @@ userSchema.methods.createPasswordResetToken = function() {
 	// password expires in 10 minutes
 	this.passwordResetExpires = Date.now() + (10 * 60 * 1000);
 
-	// send token to user
+	// we return the plaintext token which will be used to send to user's email
+	// and we have stored the encrypted resetToken in the user's document
 	return resetToken;
 };
 

@@ -108,29 +108,39 @@ tourSchema.virtual('durationWeeks').get(function() {
 });
 
 // 4 types of mongoose middleware: DOCUMENT, QUERY, AGGREGATE, MODEL
-//////////////////////////////////////////////////////////////////////
-// --- DOCUMENT middleware; runs before or after the currently processed document is saved
+// --- DOCUMENT middleware --- runs before (pre) or after (post) the currently processed document is saved or created
 // 'save' hook only runs for the '.save()' or '.create()' mongoose methods
 // every middleware function has access to 'next'
 tourSchema.pre('save', function(next) {
 	// 'this' refers to the current document
-	this.slug = slugify(this.name, { lower: true });
+	this.slug = slugify(
+		this.name,
+		{
+			lower: true
+		}
+	);
+
 	next();
 });
 
 // executed once all pre() middleware functions have completed
-// acts on the saved document
 tourSchema.post('save', function(document, next) {
 	next();
 });
 
-// --- QUERY middleware; runs before or after a query is executed
+// --- QUERY middleware --- runs before (pre) or after (post) a query is executed
 // any hook that begins with 'find' will run this middleware function (e.g. find, findOne, findOneAndDelete...)
 tourSchema.pre(/^find/, function(next) {
 	// find all documents where 'secretTour' is not equal to true
 	// 'this' refers to the current query
-	this.find({ secretTour: { $ne: true } });
+	this.find({
+		secretTour: {
+			$ne: true
+		}
+	});
+
 	this.start = Date.now();
+
 	next();
 });
 
@@ -139,10 +149,19 @@ tourSchema.post(/^find/, function(documents, next) {
 	next();
 });
 
-// --- AGGREGATION MIDDLEWARE; runs before or after an aggregation is executed
+// --- AGGREGATION MIDDLEWARE --- runs before (pre) or after (post) an aggregation is executed
 tourSchema.pre('aggregate', function(next) {
 	// 'this' refers to the current aggregation object
-	this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+	this
+		.pipeline()
+		.unshift({
+			$match: {
+				secretTour: {
+					$ne: true
+				}
+			}
+		});
+
 	next();
 });
 
