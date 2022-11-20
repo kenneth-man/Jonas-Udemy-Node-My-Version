@@ -51,6 +51,11 @@ const userSchema = new mongoose.Schema(
 		},
 		passwordResetExpires: {
 			type: Date
+		},
+		active: {
+			type: Boolean,
+			default: true,
+			select: false
 		}
 	}
 );
@@ -74,6 +79,14 @@ userSchema.pre('save', function(next) {
 	// - 1 second to make sure this prop is less than the token created (created after passworChangedAt)
 	this.passwordChangedAt = Date.now() - 1000;
 	next();
+});
+
+userSchema.pre(/^find/, function(next) {
+	this.find({
+		active: {
+			$ne: false
+		}
+	});
 });
 
 // instance method; available on all 'User' documents

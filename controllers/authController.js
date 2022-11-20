@@ -14,9 +14,33 @@ const signToken = (id) => {
 	);
 };
 
-// creating a json web token and send to user
+// creating a json web token and send to user; should always store JWTs inside a 'httpOnly' cookie
+// cookie is a string that a server can send to a client
+// client (browser) stores the cookie automatically and sends the cookie with all future requests to that same server
 const createAndSendToken = (user, statusCode, res) => {
 	const token = signToken(user._id);
+	const cookieOptions = {
+		expires: new Date(
+			Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+		),
+		// cookie cannot be accessed or modified by the browser
+		httpOnly: true
+	}
+
+	if (process.env.NODE_ENV === 'production') {
+		// cookie only sent on an sencrypted connection (HTTPS)
+		cookieOptions.secure = true
+	}
+
+	res
+		.cookie(
+			'jwt',
+			token,
+			cookieOptions
+		);
+
+	// remove password from output
+	user.password = undefined;
 
 	// login a new user by sending jwt token 
 	res
@@ -27,8 +51,7 @@ const createAndSendToken = (user, statusCode, res) => {
 			data: {
 				user
 			}
-		}
-	);
+		});
 }
 
 exports.signup = catchAsync(async (req, res, next) => {
@@ -41,7 +64,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 		passwordConfirm
 	});
 
-	// Login and send JWT to client
+	// Login and send JWT to client via cookie
 	createAndSendToken(newUser, 201, res);
 });
 
