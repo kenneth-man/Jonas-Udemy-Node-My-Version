@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const validator = require('validator');
+const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema(
 	// schema definitons
@@ -88,6 +89,43 @@ const tourSchema = new mongoose.Schema(
 		secretTour: {
 			type: Boolean,
 			default: false
+		},
+		startLocation: {
+			type: {
+				type: String,
+				default: 'Point',
+				enum: ['Point']
+			},
+			coordinates: [Number],
+			address: {
+				type: String
+			},
+			description: {
+				type: String
+			}
+		},
+		// embedded document type (documents inside parent document)
+		locations: [
+			{
+				type: {
+					type: String,
+					default: 'Point',
+					enum: ['Point']
+				},
+				coordinates: [Number],
+				address: {
+					type: String
+				},
+				description: {
+					type: String
+				},
+				day: {
+					type: Number
+				}
+			}
+		],
+		guides: {
+			type: Array
 		}
 	},
 	//schema options
@@ -119,6 +157,16 @@ tourSchema.pre('save', function(next) {
 			lower: true
 		}
 	);
+
+	next();
+});
+
+// replacing all 'guides' id's with their data as embedded documents in a parent Tour document
+tourSchema.pre('save', async function(next) {
+	// the 'map' returns an array of promises; Promise.all() creates a promise that resolves
+	// when all proivded promises have resolved/rejected
+	const guidesPromises = this.guides.map(async (curr) => await User.findById(curr));
+	this.guides = await Promise.all(guidesPromises);
 
 	next();
 });
