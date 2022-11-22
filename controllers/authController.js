@@ -1,10 +1,10 @@
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const sendEmail = require('../utils/email');
-const crypto = require('crypto');
 
 const signToken = (id) => {
 	return jwt.sign(
@@ -71,7 +71,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 exports.login = catchAsync(async (req, res, next) => {
 	const { email, password } = req.body;
 
-	// 1) Check if email and password exists
+	// 1) Check if email and password are input
 	if (!email || !password) {
 		return next(
 			new AppError(
@@ -84,7 +84,9 @@ exports.login = catchAsync(async (req, res, next) => {
 	// 2) Check if user exists && password is correct
 	// 'password' property is not included in document by default (because 'select: false' in schema);
 	// explicitly getting the 'password' in order to use it here
-	const user = await User.findOne({ email }).select('+password');
+	const user = await User
+		.findOne({ email })
+		.select('+password');
 
 	if (!user || !(await user.correctPassword(password, user.password))) {
 		return next(

@@ -91,19 +91,21 @@ const setErrorObject = (error, res) => {
 			}	
 		}
 
-		res.status(statusCode).json(conditionalErrorObject);
+		res
+			.status(statusCode)
+			.json(conditionalErrorObject);
 
 		return;
 	}
 
-	console.error('Error: ', error);
-
 	// unknown error: send generic error message to client
 	// don't leak error details or vulnerabilities
-	res.status(500).json({
-		status: 'Error',
-		message: 'Something went very wrong'
-	});
+	res
+		.status(500)
+		.json({
+			status: 'Error',
+			message: 'Something went very wrong'
+		});
 }
 
 // by specifying 4 parameters, express recognizes this as an error handling middleware function

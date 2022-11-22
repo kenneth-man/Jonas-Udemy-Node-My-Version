@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const validator = require('validator');
-const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema(
 	// schema definitons
@@ -51,7 +50,7 @@ const tourSchema = new mongoose.Schema(
 		},
 		priceDiscount: {
 			type: Number,
-			// could aslo format in array as shown in the above custom validator
+			// could also format in array as shown in the above custom validator
 			validate: {
 				validator: function(value) {
 					// 'value' is the priceDiscount value; 
@@ -124,11 +123,16 @@ const tourSchema = new mongoose.Schema(
 				}
 			}
 		],
-		guides: {
-			type: Array
-		}
+		// child referencing documents by 'ObjectId'
+		guides: [
+			{
+				type: mongoose.Schema.ObjectId,
+				ref: 'User'
+			}
+		]
 	},
-	//schema options
+	// schema options
+	// want virtual properties to show in output
 	{
 		toJSON: {
 			virtuals: true
@@ -136,7 +140,8 @@ const tourSchema = new mongoose.Schema(
 		toObject: {
 			virtuals: true
 		},
-	});
+	}
+);
 
 // virtual property; used to perform operation on a schema property, then assign a new property
 // cannot be used in queries
@@ -161,15 +166,15 @@ tourSchema.pre('save', function(next) {
 	next();
 });
 
-// replacing all 'guides' id's with their data as embedded documents in a parent Tour document
-tourSchema.pre('save', async function(next) {
-	// the 'map' returns an array of promises; Promise.all() creates a promise that resolves
-	// when all proivded promises have resolved/rejected
-	const guidesPromises = this.guides.map(async (curr) => await User.findById(curr));
-	this.guides = await Promise.all(guidesPromises);
-
-	next();
-});
+// // EXAMPLE: Embedded guide documents in tour documents
+// // replacing all 'guides' id's with their data as embedded documents in a parent Tour document
+// tourSchema.pre('save', async function(next) {
+// 	// the 'map' returns an array of promises; Promise.all() creates a promise that resolves
+// 	// when all proivded promises have resolved/rejected
+// 	const guidesPromises = this.guides.map(async (curr) => await User.findById(curr));
+// 	this.guides = await Promise.all(guidesPromises);
+// 	next();
+// });
 
 // executed once all pre() middleware functions have completed
 tourSchema.post('save', function(document, next) {
@@ -189,6 +194,17 @@ tourSchema.pre(/^find/, function(next) {
 
 	this.start = Date.now();
 
+	next();
+});
+
+tourSchema.pre(/^find/, function(next) {
+	// 'populate' means populating the document properties with references ('ref' property/ies)
+	this.populate({
+		path: 'guides',
+		// exclude these properties in the document returned from this query
+		select: '-__v -passwordChangedAt'
+	});
+		
 	next();
 });
 
