@@ -213,7 +213,7 @@ tourSchema.post(/^find/, function(documents, next) {
 	next();
 });
 
-// --- AGGREGATION MIDDLEWARE --- runs before (pre) or after (post) an aggregation is executed
+// --- AGGREGATION middleware --- runs before (pre) or after (post) an aggregation is executed
 tourSchema.pre('aggregate', function(next) {
 	// 'this' refers to the current aggregation object
 	this
