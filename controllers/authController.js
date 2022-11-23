@@ -98,6 +98,8 @@ exports.login = catchAsync(async (req, res, next) => {
 	}
 
 	createAndSendToken(user, 200, res);
+
+	next()
 });
 
 // protected route (if current user is logged in)

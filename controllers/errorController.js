@@ -98,6 +98,8 @@ const setErrorObject = (error, res) => {
 		return;
 	}
 
+	console.log(error);
+
 	// unknown error: send generic error message to client
 	// don't leak error details or vulnerabilities
 	res

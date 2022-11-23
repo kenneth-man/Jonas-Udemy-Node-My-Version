@@ -87,6 +87,8 @@ userSchema.pre(/^find/, function(next) {
 			$ne: false
 		}
 	});
+
+	next();
 });
 
 // instance method; available on all 'User' documents
