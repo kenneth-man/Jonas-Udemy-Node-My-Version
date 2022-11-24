@@ -13,8 +13,13 @@ const {
 	protect,
 	restrictTo
 } = require('../controllers/authController');
+const reviewRouter = require('../routes/reviewRoutes');
 
 const router = express.Router();
+
+// mounting router to a NESTED ROUTE;
+// redirects to the 'reviewRouter' if the route url matches '/:tourId/reviews'
+router.use('/:tourId/reviews', reviewRouter);
 
 // applying middleware 'aliasTopTours' before 'getAllTours'
 router
