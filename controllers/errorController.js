@@ -29,16 +29,16 @@ const handleJWTError = (err) => {
 	return new AppError(
 		`Invalid token: ${err}. Please try logging in again`,
 		401
-	)
-}
+	);
+};
 
 // JWT token has expired; duration set in .env as 'JWT_EXPIRES_IN'
 const handleJWTExpiredError = (err) => {
 	return new AppError(
 		`Expired token: ${err}. Please log in again to generate new token`,
 		401
-	)
-}
+	);
+};
 
 const setErrorObject = (error, res) => {
 	// Operational, trusted error: send message to client
@@ -108,7 +108,7 @@ const setErrorObject = (error, res) => {
 			status: 'Error',
 			message: 'Something went very wrong'
 		});
-}
+};
 
 // by specifying 4 parameters, express recognizes this as an error handling middleware function
 module.exports = (error, req, res, next) => {

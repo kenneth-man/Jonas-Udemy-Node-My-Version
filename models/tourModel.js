@@ -150,6 +150,17 @@ tourSchema.virtual('durationWeeks').get(function() {
 	return this.duration / 7;
 });
 
+// virtual populate; basically child referencing in the model and populating but the data (e.g. array of child id's) is not in the document returned
+// use when you need to child reference, but want to prevent a potentially inifinitly scaling array of child elements
+tourSchema.virtual(
+	'reviews',
+	{
+		ref: 'Review',
+		foreignField: 'tour',
+		localField: '_id'
+	}
+)
+
 // 4 types of mongoose middleware: DOCUMENT, QUERY, AGGREGATE, MODEL
 // --- DOCUMENT middleware --- runs before (pre) or after (post) the currently processed document is saved or created
 // 'save' hook only runs for the '.save()' or '.create()' mongoose methods

@@ -53,7 +53,9 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 
 exports.getTour = catchAsync(async (req, res, next) => {
 	// in tourRoutes.js, an 'id' dynamic parameter is defined in '.route('/:id')'
-	const tour = await Tour.findById(req.params.id);
+	const tour = await Tour
+		.findById(req.params.id)
+		.populate('reviews');
 
 	if (!tour) {
 		return next(
