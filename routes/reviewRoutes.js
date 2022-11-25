@@ -1,8 +1,9 @@
 const express = require('express');
 const {
 	createReview,
-	updateReview,
+	getReview,
 	getAllReviews,
+	updateReview,
 	deleteReview,
 	setTourUserIds
 } = require('../controllers/reviewController');
@@ -26,6 +27,7 @@ router
 
 router
 	.route('/:id')
+	.get(getReview)
 	.patch(protect, restrictTo('admin'), updateReview)
 	.delete(protect, restrictTo('admin'), deleteReview)
 

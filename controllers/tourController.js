@@ -1,9 +1,9 @@
 const Tour = require('../models/tourModel');
-const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
 const {
 	createOne,
+	getOne,
+	getAll,
 	updateOne,
 	deleteOne
 } = require('../utils/controllerUtils');
@@ -20,53 +20,9 @@ exports.aliasTopTours = (req, res, next) => {
 
 exports.createTour = createOne(Tour);
 
-exports.getAllTours = catchAsync(async (req, res, next) => {
-	// BUILD QUERY
-	const features = new APIFeatures(Tour.find(), req.query)
-		.filter()
-		.sort()
-		.limitFields()
-		.paginate();
+exports.getTour = getOne(Tour, { path: 'reviews' });
 
-	// EXECUTE QUERY
-	const tours = await features.query;
-
-	// SEND RESPONSE
-	res
-		.status(200)
-		.json({
-			status: 'success',
-			results: tours.length,
-			data: {
-				tours
-			}
-		});
-});
-
-exports.getTour = catchAsync(async (req, res, next) => {
-	// in tourRoutes.js, an 'id' dynamic parameter is defined in '.route('/:id')'
-	const tour = await Tour
-		.findById(req.params.id)
-		.populate('reviews');
-
-	if (!tour) {
-		return next(
-			new AppError(
-				'No Tour found with a matching ID',
-				404
-			)
-		);
-	}
-
-	res
-		.status(200)
-		.json({
-			status: 'success',
-			data: {
-				tour
-			}
-		});
-});
+exports.getAllTours = getAll(Tour);
 
 exports.updateTour = updateOne(Tour);
 

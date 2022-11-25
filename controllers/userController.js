@@ -2,6 +2,8 @@ const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const {
+	getOne,
+	getAll,
 	updateOne,
 	deleteOne
 } = require('../utils/controllerUtils');
@@ -18,20 +20,21 @@ const filterObject = (object, ...persistedFields) => {
 	return filteredObject;
 };
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-	const users = await User.find();
+exports.getUser = getOne(User);
 
-	res
-		.status(200)
-		.json({
-			status: 'success',
-			results: users.length,
-			data: {
-				users
-			}
-		});
-});
+exports.getAllUsers = getAll(User);
 
+exports.updateUser = updateOne(User);
+
+// 'admin' to delete a 'user' document
+exports.deleteUser = deleteOne(User);
+
+exports.getMe = (req, res, next) => {
+	// 'req.user' property assigned during 'protect' middlware (which checks if a user is currently logged in)
+	req.params.id = req.user.id
+};
+
+// 'user' to update their own document
 exports.updateMe = catchAsync(async (req, res, next) => {
 	// 1) Throw error if a user tries to update password data
 	if (req.body.password || req.body.passwordConfirm) {
@@ -65,6 +68,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 		});
 });
 
+// 'user' to set their data as 'inactive' but data still exists
 // not deleting document, but setting 'active: false'
 // then not selecting 'active: false 'documents in user document pre query hook
 exports.deleteMe = catchAsync(async (req, res, next) => {
@@ -78,20 +82,7 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 	res
 		.status(204)
 		.json({
-			status: 'succes',
+			status: 'success',
 			data: null
 		});
 });
-
-exports.getUser = (req, res) => {
-	res	
-		.status(500)
-		.json({
-			status: 'error',
-			message: 'This routes is not yet defined'
-		});
-};
-
-exports.updateUser = updateOne(User);
-
-exports.deleteUser = deleteOne(User);

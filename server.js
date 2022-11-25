@@ -42,4 +42,4 @@ process.on('unhandledRejection', err => {
 	});
 });
 
-//req.params, req.query, req.body, req.headers
+//req.params, req.query, req.body, req.get([headerName])
