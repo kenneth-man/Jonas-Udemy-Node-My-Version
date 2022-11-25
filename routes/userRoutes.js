@@ -3,13 +3,13 @@ const {
 	getAllUsers,
 	updateMe,
 	deleteMe,
-	createUser,
 	getUser,
 	updateUser,
 	deleteUser
 } = require('../controllers/userController');
 const {
 	protect,
+	restrictTo,
 	signup,
 	login,
 	forgotPassword,
@@ -31,12 +31,11 @@ router.delete('/deleteMe', protect, deleteMe);
 router
 	.route('/')
 	.get(getAllUsers)
-	.post(createUser);
 
 router
 	.route('/:id')
 	.get(getUser)
-	.patch(updateUser)
-	.delete(deleteUser);
+	.patch(protect, restrictTo('admin'), updateUser)
+	.delete(protect, restrictTo('admin'), deleteUser);
 
 module.exports = router;

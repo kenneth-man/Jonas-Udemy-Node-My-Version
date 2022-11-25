@@ -2,6 +2,11 @@ const Tour = require('../models/tourModel');
 const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const {
+	createOne,
+	updateOne,
+	deleteOne
+} = require('../utils/controllerUtils');
 
 // 3rd param 'next' calls next middleware in middleware stack
 exports.aliasTopTours = (req, res, next) => {
@@ -13,20 +18,7 @@ exports.aliasTopTours = (req, res, next) => {
 	next();
 };
 
-exports.createTour = catchAsync(async (req, res, next) => {
-	const newTour = await Tour.create(req.body);
-
-	// sending back json in the res; 'status()' sends a code with the res
-	// '.json()' ends the 'req res cycle'
-	res
-		.status(201)
-		.json({
-			status: 'success',
-			data: {
-				tour: newTour
-			}
-		});
-});
+exports.createTour = createOne(Tour);
 
 exports.getAllTours = catchAsync(async (req, res, next) => {
 	// BUILD QUERY
@@ -76,51 +68,9 @@ exports.getTour = catchAsync(async (req, res, next) => {
 		});
 });
 
-exports.updateTour = catchAsync(async (req, res, next) => {
-	const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-		new: true,
-		// enable built in mongoose validators in tourModel.js
-		runValidators: true
-	});
+exports.updateTour = updateOne(Tour);
 
-	if (!tour) {
-		return next(
-			new AppError(
-				'No Tour found with a matching ID',
-				404
-			)
-		);
-	}
-	
-	res
-		.status(200)
-		.json({
-			status: 'success',
-			data: {
-				tour
-			}
-		});
-});
-
-exports.deleteTour = catchAsync(async (req, res, next) => {
-	const tour = await Tour.findByIdAndDelete(req.params.id);
-
-	if (!tour) {
-		return next(
-			new AppError(
-				'No Tour found with a matching ID',
-				404
-			)
-		);
-	}
-		
-	res
-		.status(204)
-		.json({
-			status: 'success',
-			data: null
-		});
-});
+exports.deleteTour = deleteOne(Tour);
 
 // using mongodb aggregation pipeline; aggregation pipelines are similar to queries but
 // consists of one or more 'stages' that processes and manipulates data

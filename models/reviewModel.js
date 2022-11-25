@@ -39,7 +39,7 @@ const reviewSchema = new mongoose.Schema(
 );
 
 reviewSchema.pre(/^find/, function(next) {
-	// when you need to populate more than one document property
+	// e.g. when you need to populate more than one document property
 	// this
 	// 	.populate({
 	// 		path: 'tour',

@@ -1,6 +1,10 @@
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const {
+	updateOne,
+	deleteOne
+} = require('../utils/controllerUtils');
 
 const filterObject = (object, ...persistedFields) => {
 	const filteredObject = {};
@@ -88,29 +92,6 @@ exports.getUser = (req, res) => {
 		});
 };
 
-exports.createUser = (req, res) => {
-	res	
-		.status(500)
-		.json({
-			status: 'error',
-			message: 'This routes is not yet defined'
-		});
-};
+exports.updateUser = updateOne(User);
 
-exports.updateUser = (req, res) => {
-	res	
-		.status(500)
-		.json({
-			status: 'error',
-			message: 'This routes is not yet defined'
-		});
-};
-
-exports.deleteUser = (req, res) => {
-	res	
-		.status(500)
-		.json({
-			status: 'error',
-			message: 'This routes is not yet defined'
-		});
-};
+exports.deleteUser = deleteOne(User);

@@ -1,9 +1,15 @@
 const express = require('express');
 const {
 	createReview,
-	getAllReviews
+	updateReview,
+	getAllReviews,
+	deleteReview,
+	setTourUserIds
 } = require('../controllers/reviewController');
-const { protect } = require('../controllers/authController');
+const {
+	protect,
+	restrictTo
+} = require('../controllers/authController');
 
 const router = express.Router(
 	// in order to access params that are not specified for this route
@@ -15,7 +21,12 @@ const router = express.Router(
 
 router
 	.route('/')
-	.post(protect, createReview)
-	.get(protect, getAllReviews);
+	.post(protect, restrictTo('user'), setTourUserIds, createReview)
+	.get(getAllReviews);
+
+router
+	.route('/:id')
+	.patch(protect, restrictTo('admin'), updateReview)
+	.delete(protect, restrictTo('admin'), deleteReview)
 
 module.exports = router;
