@@ -22,22 +22,16 @@ const router = express.Router();
 router.use('/:tourId/reviews', reviewRouter);
 
 // applying middleware 'aliasTopTours' before 'getAllTours'
-router
-	.route('/top-5-cheap')
-	.get(aliasTopTours, getAllTours);
+router.get('/top-5-cheap', aliasTopTours, getAllTours);
 
-router
-	.route('/tour-stats')
-	.get(getTourStats);
+router.get('/tour-stats', getTourStats);
 
-router
-	.route('/monthly-plan/:year')
-	.get(getMonthlyPlan);
+router.get('/monthly-plan/:year', protect, restrictTo('admin', 'lead-guide', 'guide'), getMonthlyPlan);
 
 router
 	.route('/')
-	.post(createTour)
-	.get(protect, getAllTours);
+	.get(getAllTours)
+	.post(protect, restrictTo('admin', 'lead-guide'), createTour);
 
 router
 	.route('/:id')

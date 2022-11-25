@@ -25,19 +25,24 @@ router.post('/signup', signup);
 router.post('/login', login);
 router.post('/forgotPassword', forgotPassword);
 router.patch('/resetPassword/:token', resetPassword);
-router.patch('/updateMyPassword', protect, updatePassword);
-router.get('/me', protect, getMe, getUser);
-router.patch('/updateMe', protect, updateMe);
-router.delete('/deleteMe', protect, deleteMe);
 
-router
-	.route('/')
-	.get(getAllUsers)
+// all subsequent routes in this router are only reachable if the 'protect' middleware passes without error;
+// all middleware runs in sequence
+router.use(protect);
+
+router.get('/me', getMe, getUser);
+router.patch('/updateMyPassword', updatePassword);
+router.patch('/updateMe', updateMe);
+router.delete('/deleteMe', deleteMe);
+
+router.use(restrictTo('admin'));
+
+router.get('/', getAllUsers)
 
 router
 	.route('/:id')
 	.get(getUser)
-	.patch(protect, restrictTo('admin'), updateUser)
-	.delete(protect, restrictTo('admin'), deleteUser);
+	.patch(updateUser)
+	.delete(deleteUser);
 
 module.exports = router;

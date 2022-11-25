@@ -20,15 +20,17 @@ const router = express.Router(
 	}
 );
 
+router.use(protect);
+
 router
 	.route('/')
-	.post(protect, restrictTo('user'), setTourUserIds, createReview)
-	.get(getAllReviews);
+	.get(getAllReviews)
+	.post(restrictTo('user'), setTourUserIds, createReview);
 
 router
 	.route('/:id')
 	.get(getReview)
-	.patch(protect, restrictTo('admin'), updateReview)
-	.delete(protect, restrictTo('admin'), deleteReview)
+	.patch(restrictTo('admin'), updateReview)
+	.delete(restrictTo('admin'), deleteReview);
 
 module.exports = router;
