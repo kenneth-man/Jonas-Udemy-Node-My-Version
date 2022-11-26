@@ -38,7 +38,9 @@ const tourSchema = new mongoose.Schema(
 			type: Number,
 			default: 4.5,
 			min: [1, 'Rating must be above 1'],
-			max: [5, 'Rating must be below 5']
+			max: [5, 'Rating must be below 5'],
+			// setter function; ran every time a new value is assigned for this property
+			set: (value) => value.toFixed(2)
 		},
 		ratingsQuantity: {
 			type: Number,
@@ -142,6 +144,22 @@ const tourSchema = new mongoose.Schema(
 		},
 	}
 );
+
+// single field index; typically index if field/property will be accessed frequently to improve performance on a GET request
+// sorting 'price' property in ascending order; 1 === ascending; -1 === descending
+tourSchema.index({
+	price: 1
+});
+
+tourSchema.index({
+	slug: 1
+});
+
+// compound index; more than one field/property to index
+tourSchema.index({
+	duration: 1,
+	difficulty: 1
+})
 
 // virtual property; used to perform operation on a schema property, then assign a new property
 // cannot be used in queries
