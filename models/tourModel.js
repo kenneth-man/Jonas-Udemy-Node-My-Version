@@ -155,6 +155,12 @@ tourSchema.index({
 	slug: 1
 });
 
+// geospatial queries must have an associated index;
+// for geospatial queries, values can be either '2dsphere' or '2dindex'
+tourSchema.index({
+	startLocation: '2dsphere'
+})
+
 // compound index; more than one field/property to index
 tourSchema.index({
 	duration: 1,

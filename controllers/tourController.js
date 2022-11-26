@@ -1,4 +1,5 @@
 const Tour = require('../models/tourModel');
+const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const {
 	createOne,
@@ -138,5 +139,55 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
 			data: {
 				plan
 			}
+		});
+});
+
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+	let { distance, latlng, unit } = req.params;
+	let [lat, lng] = latlng.split(',');
+
+	if (!lat || !lng) {
+		next(
+			new AppError(
+				`Missing 'lat' and 'lng' query params`,
+				400
+			)
+		);
+	}
+
+	if (unit !== 'miles' || unit !== 'km') {
+		next(
+			new AppError(
+				`Unit can only be 'miles' or 'km'`,
+				400
+			)
+		);
+	}
+
+	distance = distance || 10;
+
+	const earthRadiusMiles = 3963.2;
+	const earthRadiusKms = 6378.1;
+	// mongodb expects radius to be in radians; distance / radius
+	const radius = distance / (unit === 'miles' ? earthRadiusMiles : earthRadiusKms);
+
+	// geospatial query filter object
+	const tours = await Tour.find({
+		startLocation: {
+			$geoWithin: {
+				$centerSphere: [
+					[lng, lat],
+					radius
+				]
+			}
+		}
+	});
+
+	res
+		.status(200)
+		.json({
+			status: 'success',
+			results: tours.length,
+			data: tours
 		});
 });

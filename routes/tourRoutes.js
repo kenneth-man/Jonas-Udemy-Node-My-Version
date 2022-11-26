@@ -7,7 +7,8 @@ const {
 	getTour, 
 	updateTour,
 	deleteTour,
-	getMonthlyPlan
+	getMonthlyPlan,
+	getToursWithin
 } = require('../controllers/tourController');
 const {
 	protect,
@@ -27,6 +28,8 @@ router.get('/top-5-cheap', aliasTopTours, getAllTours);
 router.get('/tour-stats', getTourStats);
 
 router.get('/monthly-plan/:year', protect, restrictTo('admin', 'lead-guide', 'guide'), getMonthlyPlan);
+
+router.get('/tours-within', getToursWithin);
 
 router
 	.route('/')
