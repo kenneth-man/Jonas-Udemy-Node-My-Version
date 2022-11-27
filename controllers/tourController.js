@@ -191,3 +191,58 @@ exports.getToursWithin = catchAsync(async (req, res, next) => {
 			data: tours
 		});
 });
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+	let { latlng, unit } = req.params;
+	let [lat, lng] = latlng.split(',');
+
+	if (!lat || !lng) {
+		next(
+			new AppError(
+				`Missing 'lat' and 'lng' query params`,
+				400
+			)
+		);
+	}
+
+	if (unit !== 'miles' || unit !== 'km') {
+		next(
+			new AppError(
+				`Unit can only be 'miles' or 'km'`,
+				400
+			)
+		);
+	}
+
+	// convert distance to 'miles' or 'km' in 'distanceMulitplier' property
+	const multiplier = unit === 'miles' ? 0.000621371 : 0.001;
+
+	// use aggregation pipelines when peforming calculations
+	const distances = await Tour.aggregate([
+		{
+			// '$geoNear' stage must be the first aggregation stage if used
+			// automatically uses 'geospatial queries' index if only one exists; if multiple, specify using 'key' property
+			$geoNear: {
+				near: {
+					type: 'Point',
+					coordinates: [Number(lng), Number(lat)]
+				},
+				distanceField: 'distance',
+				distanceMultiplier: multiplier
+			}
+		},
+		{
+			$project: {
+				distance: 1,
+				name: 1
+			}
+		}
+	]);
+
+	res
+		.status(200)
+		.json({
+			status: 'success',
+			data: distances
+		});
+});

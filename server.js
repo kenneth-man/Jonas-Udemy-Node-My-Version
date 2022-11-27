@@ -42,4 +42,7 @@ process.on('unhandledRejection', err => {
 	});
 });
 
-//req.params, req.query, req.body, req.get([headerName])
+// req.params (e.g. localhost:3000/api/v1/tours/:id)
+// req.query (e.g. localhost:3000/api/v1/tours?id=342984)
+// req.body
+// req.get([headerName])

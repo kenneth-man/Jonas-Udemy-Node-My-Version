@@ -251,15 +251,20 @@ tourSchema.post(/^find/, function(documents, next) {
 // --- AGGREGATION middleware --- runs before (pre) or after (post) an aggregation is executed
 tourSchema.pre('aggregate', function(next) {
 	// 'this' refers to the current aggregation object
-	this
-		.pipeline()
-		.unshift({
-			$match: {
-				secretTour: {
-					$ne: true
+	const firstAggregationStage = this.pipeline()[0];
+	
+	// '$geoNear' stage must be the first aggregation stage if used
+	if (Object.keys(firstAggregationStage)[0] !== '$geoNear') {
+		this
+			.pipeline()
+			.unshift({
+				$match: {
+					secretTour: {
+						$ne: true
+					}
 				}
-			}
-		});
+			});
+	}
 
 	next();
 });
